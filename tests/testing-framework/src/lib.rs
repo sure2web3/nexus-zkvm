@@ -25,6 +25,8 @@ mod test {
         "galeshapley",
         "lambda_calculus",
         "keccak",
+        "multiply",
+        "simple_hash",
     ];
 
     const HOME_PATH: &str = "../../";
@@ -110,7 +112,7 @@ mod test {
         test_example_multi(
             vec![EmulatorType::TwoPass],
             vec!["-C opt-level=3"],
-            "examples/src/bin/input_output",
+            "examples/src/bin/io/input_output",
             vec![IOArgs::<u32, u32, u32>::new(
                 Some(3u32),
                 Some(4u32),
@@ -123,7 +125,7 @@ mod test {
     #[serial]
     fn test_prove_io() {
         let elfs = compile_multi(
-            &format!("examples/src/bin/input_output"),
+            &format!("examples/src/bin/io/input_output"),
             &["-C opt-level=3"],
             &HOME_PATH,
         );
@@ -352,6 +354,60 @@ mod test {
 
     #[test]
     #[serial]
+    fn test_emulate_multiply() {
+        test_example_multi(
+            vec![
+                EmulatorType::Harvard,
+                EmulatorType::default_linear(),
+                EmulatorType::TwoPass,
+            ],
+            vec!["-C opt-level=3"],
+            "examples/src/bin/multiply",
+            IOArgs::<(), (), ()>::default_list(),
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn test_prove_multiply() {
+        let elfs = compile_multi("examples/src/bin/multiply", &["-C opt-level=3"], &HOME_PATH);
+        let (view, execution_trace) =
+            k_trace(elfs[0].clone(), &[], &[], &[], K).expect("error generating trace");
+        let proof = prove(&execution_trace, &view).unwrap();
+        verify(proof, &view).unwrap();
+    }
+
+    #[test]
+    #[serial]
+    fn test_emulate_simple_hash() {
+        test_example_multi(
+            vec![
+                EmulatorType::Harvard,
+                EmulatorType::default_linear(),
+                EmulatorType::TwoPass,
+            ],
+            vec!["-C opt-level=3"],
+            "examples/src/bin/simple_hash",
+            IOArgs::<(), (), ()>::default_list(),
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn test_prove_simple_hash() {
+        let elfs = compile_multi(
+            "examples/src/bin/simple_hash",
+            &["-C opt-level=3"],
+            &HOME_PATH,
+        );
+        let (view, execution_trace) =
+            k_trace(elfs[0].clone(), &[], &[], &[], K).expect("error generating trace");
+        let proof = prove(&execution_trace, &view).unwrap();
+        verify(proof, &view).unwrap();
+    }
+
+    #[test]
+    #[serial]
     fn test_emulate_keccak() {
         test_example_multi(
             vec![
@@ -379,7 +435,7 @@ mod test {
     #[serial]
     fn test_prove_keccak_precompile() {
         let elfs = compile_multi(
-            "examples/src/bin/keccak_precompile",
+            "examples/src/bin/precompiles/keccak_precompile",
             &["-C opt-level=3"],
             &HOME_PATH,
         );
@@ -413,7 +469,7 @@ mod test {
                 EmulatorType::TwoPass,
             ],
             vec!["-C opt-level=3"],
-            "examples/src/bin/long_io",
+            "examples/src/bin/io/long_io",
             vec![IOArgs::<
                 (bool, u8, u16, u32, u64),
                 (bool, u8, u16, u32, u64),
@@ -429,7 +485,11 @@ mod test {
     #[test]
     #[serial]
     fn test_prove_long_io() {
-        let elfs = compile_multi("examples/src/bin/long_io", &["-C opt-level=3"], &HOME_PATH);
+        let elfs = compile_multi(
+            "examples/src/bin/io/long_io",
+            &["-C opt-level=3"],
+            &HOME_PATH,
+        );
 
         let mut public_input_bytes = to_allocvec_cobs(&mut (true, 1u8, 2u16, 3u32, 4u64)).unwrap();
         let mut private_input_bytes = to_allocvec_cobs(&mut (true, 1u8, 2u16, 3u32, 4u64)).unwrap();

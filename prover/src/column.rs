@@ -154,6 +154,30 @@ pub enum Column {
     /// Boolean flag on whether the row is a SRA.
     #[size = 1]
     IsSra,
+    /// Boolean flag on whether the row is a MUL.
+    #[size = 1]
+    IsMul,
+    /// Boolean flag on whether the row is a MULHU.
+    #[size = 1]
+    IsMulhu,
+    /// Boolean flag on whether the row is a MULH.
+    #[size = 1]
+    IsMulh,
+    /// Boolean flag on whether the row is a MULHSU.
+    #[size = 1]
+    IsMulhsu,
+    /// Boolean flag on whether the row is a DIVU.
+    #[size = 1]
+    IsDivu,
+    /// Boolean flag on whether the row is a DIV.
+    #[size = 1]
+    IsDiv,
+    /// Boolean flag on whether the row is a REMU.
+    #[size = 1]
+    IsRemu,
+    /// Boolean flag on whether the row is a REM.
+    #[size = 1]
+    IsRem,
     /// Boolean flag on whether the row is an ECALL.
     #[size = 1]
     IsEcall,
@@ -274,6 +298,113 @@ pub enum Column {
     #[size = 1]
     SraDegreeAux,
 
+    // M Extension
+    /// Intermediate products for M Extension
+    /// The product of (P1, C1) = b0*c1 + b1*c0
+    /// P1 is in range [0, 2^16-1], C1 is in {0, 1}
+    #[size = 2]
+    MulP1,
+    #[size = 1]
+    MulC1,
+
+    /// The product of (P3', C2) = b0*c3 + b3*c0
+    /// P3' is in range [0, 2^16-1], C3' is in {0, 1}
+    #[size = 2]
+    MulP3Prime,
+    #[size = 1]
+    MulC3Prime,
+
+    /// The product of (P3'', C3'') = b1*c2 + b2*c1
+    /// P3'' is in range [0, 2^16-1], C3' is in {0, 1}
+    #[size = 2]
+    MulP3PrimePrime,
+    #[size = 1]
+    MulC3PrimePrime,
+
+    /// The product of (P5, C5) = b1*c2 + b2*c1
+    /// P5 is in range [0, 2^16-1], C5 is in {0, 1}
+    #[size = 2]
+    MulP5,
+    #[size = 1]
+    MulC5,
+
+    /// The carry flag for the low-half of MUL instruction. Possible values {0, 1}
+    #[size = 1]
+    MulCarry0,
+    /// The carry flag for the low-half of MUL instruction. Possible values in {0, 1}
+    #[size = 1]
+    MulCarry1_0,
+    #[size = 1]
+    MulCarry1_1,
+    /// The carry flag for the high-half of MUL instruction. Possible values in {0, 1}
+    #[size = 1]
+    MulCarry2_0,
+    #[size = 1]
+    MulCarry2_1,
+    /// The carry flag for the high-half of MUL instruction. Possible values {0, 1}
+    #[size = 1]
+    MulCarry3,
+
+    /// 1 indicates ValueC is zero, 0 indicates ValueC is non-zero
+    #[size = 1]
+    IsDivideByZero,
+    /// 1 indicates ValueA is zero, 0 indicates ValueA is non-zero
+    #[size = 1]
+    IsAZero,
+    /// Boolean flag on whether the DIV/REM instruction is an overflow.
+    #[size = 1]
+    IsOverflow,
+
+    /// The quotient for the DIV/REM instruction: quotient*c + remainder = value_a
+    #[size = 4]
+    Quotient,
+
+    /// The helper intermediate value of t = b*c
+    #[size = 4]
+    HelperT,
+    /// The remainder for the DIV/REM instruction: r = a - t
+    #[size = 4]
+    Remainder,
+    /// The helper intermediate value of u = c - r - 1
+    #[size = 4]
+    HelperU,
+    /// The borrow flag for DIV instruction for r = a - t. Possible values in {0, 1}
+    #[size = 1]
+    RemainderBorrow,
+    /// The borrow flag for DIV instruction for u = c - r - 1. Possible values in {0, 1}
+    #[size = 1]
+    HelperUBorrow,
+
+    /// The lower 32-bit of value_A, used for M extension: MULH/MULHSU
+    #[size = 4]
+    ValueALow,
+    /// The borrow flag for absolute value of Value_A. Possible values in {0, 1}. Default for lower half 32-bit.
+    #[size = 2]
+    ValueAAbsBorrow,
+    /// The borrow flag for absolute value of Value_A. Possible values in {0, 1}. Default for upper half 32-bit.
+    #[size = 2]
+    ValueAAbsBorrowHigh,
+    /// The borrow flag for absolute value of Value_B. Possible values in {0, 1}
+    #[size = 2]
+    ValueBAbsBorrow,
+    /// The borrow flag for absolute value of Value_C. Possible values in {0, 1}
+    #[size = 2]
+    ValueCAbsBorrow,
+
+    /// The absolute value of Value_A. Default for lower half 32-bit.
+    #[size = 4]
+    ValueAAbs,
+    /// The absolute value of Value_A. Default for upper half 32-bit.
+    #[size = 4]
+    ValueAAbsHigh,
+    /// The absolute value of Value_B.
+    #[size = 4]
+    ValueBAbs,
+    /// The absolute value of Value_C.
+    #[size = 4]
+    ValueCAbs,
+
+    /// End M Extension
     /// 1 indicates OpA is non-zero, 0 indicates OpA is zero
     #[size = 1]
     ValueAEffectiveFlag,

@@ -96,6 +96,12 @@ impl ProgramStep {
         self.get_op_a() != Register::X0
     }
 
+    /// Returns the signed bit of the result
+    pub(crate) fn get_sgn_result(&self) -> bool {
+        let result = self.get_result().expect("Must have result");
+        (result[WORD_SIZE - 1] >> 7) == 1
+    }
+
     /// Returns the signed bit of ValueA
     pub(crate) fn get_sgn_a(&self) -> bool {
         let a = self.get_value_a();

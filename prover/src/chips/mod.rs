@@ -12,6 +12,9 @@ pub use instructions::{
     SltChip, SltuChip, SraChip, SrlChip, SubChip, SyscallChip,
 };
 
+// M extension
+pub use instructions::MExtensionChips;
+
 pub use cpu::CpuChip;
 pub use custom::CustomInstructionChip;
 pub use decoding::DecodingCheckChip;

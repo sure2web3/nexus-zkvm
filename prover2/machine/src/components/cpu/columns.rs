@@ -12,6 +12,7 @@ use nexus_vm_prover_trace::{
 };
 
 #[derive(Debug, Copy, Clone, PreprocessedAirColumn)]
+#[preprocessed_prefix = "cpu"]
 pub enum PreprocessedColumn {
     /// The current execution time
     #[size = 2]
@@ -38,6 +39,16 @@ pub enum Column {
     /// The value of operand op-c
     #[size = 4]
     CVal,
+    /// The address of the first operand of the instruction
+    #[size = 1]
+    OpA,
+    /// The address of the second operand of the instruction
+    #[size = 1]
+    OpB,
+    /// The address of the third operand of the instruction
+    #[size = 1]
+    OpC,
+
     // Instruction flags
     /// Selector flag which indicates an ADD operation
     #[size = 1]
@@ -51,25 +62,25 @@ pub enum Column {
 }
 
 /// Lower 16 bits of pc
-pub const PC_LOW: HalfWord = HalfWord {
+pub const PC_LOW: HalfWord<Column> = HalfWord {
     col: Column::Pc,
     idx: 0,
 };
 
 /// Higher 16 bits of pc
-pub const PC_HIGH: HalfWord = HalfWord {
+pub const PC_HIGH: HalfWord<Column> = HalfWord {
     col: Column::Pc,
     idx: 1,
 };
 
 /// Two limbs combined into a single 16 bit column.
-pub struct HalfWord {
-    col: Column,
-    idx: usize,
+pub struct HalfWord<C> {
+    pub col: C,
+    pub idx: usize,
 }
 
-impl VirtualColumn for HalfWord {
-    type Column = Column;
+impl<C: AirColumn> VirtualColumn for HalfWord<C> {
+    type Column = C;
 
     fn eval<E: EvalAtRow, P: PreprocessedAirColumn>(
         &self,

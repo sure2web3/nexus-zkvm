@@ -11,12 +11,13 @@ use stwo_prover::core::{
 
 use crate::{
     column::Column::{
-        self, CReg1TsPrev, CReg2TsPrev, CReg3TsPrev, FinalPrgMemoryCtr, Helper1, InstrVal,
-        OpC16_23, OpC24_31, Pc, PcNextAux, PrevCtr, ProgCtrCur, ProgCtrPrev, Qt, Ram1TsPrev,
-        Ram1TsPrevAux, Ram1ValCur, Ram1ValPrev, Ram2TsPrev, Ram2TsPrevAux, Ram2ValCur, Ram2ValPrev,
-        Ram3TsPrev, Ram3TsPrevAux, Ram3ValCur, Ram3ValPrev, Ram4TsPrev, Ram4TsPrevAux, Ram4ValCur,
-        Ram4ValPrev, RamBaseAddr, Reg1TsPrev, Reg2TsPrev, Reg3TsPrev, Rem, RemDiff, ValueA, ValueB,
-        ValueC,
+        self, CReg1TsPrev, CReg2TsPrev, CReg3TsPrev, FinalPrgMemoryCtr, Helper1, HelperT, HelperU,
+        InstrVal, MulP1, MulP3Prime, MulP3PrimePrime, MulP5, OpC16_23, OpC24_31, Pc, PcNextAux,
+        PrevCtr, ProgCtrCur, ProgCtrPrev, Qt, Quotient, Ram1TsPrev, Ram1TsPrevAux, Ram1ValCur,
+        Ram1ValPrev, Ram2TsPrev, Ram2TsPrevAux, Ram2ValCur, Ram2ValPrev, Ram3TsPrev, Ram3TsPrevAux,
+        Ram3ValCur, Ram3ValPrev, Ram4TsPrev, Ram4TsPrevAux, Ram4ValCur, Ram4ValPrev, RamBaseAddr,
+        Reg1TsPrev, Reg2TsPrev, Reg3TsPrev, Rem, RemDiff, Remainder, ValueA, ValueAAbs,
+        ValueAAbsHigh, ValueALow, ValueB, ValueBAbs, ValueC, ValueCAbs,
     },
     components::AllLookupElements,
     extensions::ExtensionsConfig,
@@ -37,7 +38,7 @@ const LOOKUP_TUPLE_SIZE: usize = 1;
 stwo_prover::relation!(Range256LookupElements, LOOKUP_TUPLE_SIZE);
 
 impl Range256Chip {
-    const CHECKED_WORDS: [Column; 29] = [
+    const CHECKED_WORDS: [Column; 38] = [
         Pc,
         PcNextAux,
         InstrVal,
@@ -67,6 +68,15 @@ impl Range256Chip {
         Rem,
         Qt,
         RemDiff,
+        HelperT,
+        HelperU,
+        Quotient,
+        Remainder,
+        ValueBAbs,
+        ValueCAbs,
+        ValueAAbs,
+        ValueAAbsHigh,
+        ValueALow,
     ];
 
     const CHECKED_BYTES: [Column; 8] = [
@@ -79,6 +89,8 @@ impl Range256Chip {
         Ram3ValPrev,
         Ram4ValPrev,
     ];
+
+    const CHECKED_HALF_WORDS: [Column; 4] = [MulP1, MulP3Prime, MulP3PrimePrime, MulP5];
 
     const TYPE_U_CHECKED_BYTES: [Column; 2] = [OpC16_23, OpC24_31];
 }
@@ -108,6 +120,10 @@ impl MachineChip for Range256Chip {
         for row_idx in 0..traces.num_rows() {
             for col in Self::CHECKED_WORDS.iter() {
                 let value_col: [BaseField; WORD_SIZE] = traces.column(row_idx, *col);
+                fill_main_cols(value_col, side_note);
+            }
+            for col in Self::CHECKED_HALF_WORDS.iter() {
+                let value_col: [BaseField; 2] = traces.column::<2>(row_idx, *col);
                 fill_main_cols(value_col, side_note);
             }
             for col in Self::CHECKED_BYTES.iter() {
@@ -145,6 +161,17 @@ impl MachineChip for Range256Chip {
                 lookup_element,
             );
         }
+
+        for col in Self::CHECKED_HALF_WORDS.iter() {
+            let value_basecolumn: [_; 2] = original_traces.get_base_column::<2>(*col);
+            check_bytes(
+                value_basecolumn,
+                original_traces.log_size(),
+                logup_trace_gen,
+                lookup_element,
+            );
+        }
+
         for col in Self::CHECKED_BYTES.iter() {
             let value_basecolumn = original_traces.get_base_column::<1>(*col);
             check_bytes(
@@ -197,6 +224,18 @@ impl MachineChip for Range256Chip {
                 ));
             }
         }
+
+        for col in Self::CHECKED_HALF_WORDS.iter() {
+            let value = trace_eval.column_eval::<2>(*col);
+            for limb in value.into_iter().take(2) {
+                eval.add_to_relation(RelationEntry::new(
+                    lookup_elements,
+                    SecureField::one().into(),
+                    &[limb],
+                ));
+            }
+        }
+
         for col in Self::CHECKED_BYTES.iter() {
             let [value] = trace_eval.column_eval(*col);
 

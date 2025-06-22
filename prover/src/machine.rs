@@ -31,8 +31,8 @@ use crate::{
     chips::{
         AddChip, AuipcChip, BeqChip, BgeChip, BgeuChip, BitOpChip, BltChip, BltuChip, BneChip,
         CpuChip, CustomInstructionChip, DecodingCheckChip, JalChip, JalrChip, LoadStoreChip,
-        LuiChip, ProgramMemCheckChip, RangeCheckChip, RegisterMemCheckChip, SllChip, SltChip,
-        SltuChip, SraChip, SrlChip, SubChip, SyscallChip, TimestampChip,
+        LuiChip, MExtensionChips, ProgramMemCheckChip, RangeCheckChip, RegisterMemCheckChip,
+        SllChip, SltChip, SltuChip, SraChip, SrlChip, SubChip, SyscallChip, TimestampChip,
     },
     column::{PreprocessedColumn, ProgramColumn},
     components::{self, AllLookupElements},
@@ -65,6 +65,7 @@ pub type BaseComponent = (
     SraChip,
     LoadStoreChip,
     SyscallChip,
+    MExtensionChips,
     CustomInstructionChip,
     ProgramMemCheckChip,
     RegisterMemCheckChip,
